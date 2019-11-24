@@ -24,4 +24,14 @@ var (
 	Hex    Codec = hexCodecs{}
 	Md5    Codec = hashCodecs{mode: "md5"}
 	Sha256 Codec = hashCodecs{mode: "sha256"}
+	Escape Codec = escapeCodecs{}
+
+	Id       Codec = idCodecs{}
+	Const    Codec = constCodecs{}
+	Repeat   Codec = repeatCodecs{}
+	Tee      Codec = teeCodecs{}
+	Redirect Codec = redirectCodecs{}
+	Sink     Codec = sinkCodecs{}
+	Append   Codec = appendCodecs{}
+	Newline  Codec = newLineCodecs{}
 )

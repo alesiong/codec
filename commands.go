@@ -5,7 +5,6 @@ import "fmt"
 type command struct {
 	options []option
 	codecs  []codec
-	string  string
 }
 
 func (c *command) print() {

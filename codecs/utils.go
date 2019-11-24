@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	bufferSize = 1
+	bufferSize = 8192
 )
 
 func ReadToWriter(reader io.Reader, writer io.Writer, closer io.Closer) (err error) {

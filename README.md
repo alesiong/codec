@@ -13,6 +13,9 @@ options:
     -e (default): set the global coding mode to encode
     -d: set the global coding mode to decode
     -n: append new line ('\n') at the end of output
+    -I string: use `string` as input instead of stdin
+    -F file: use content of `file` as input instead of stdin
+    -O file: use `file` as output instead of stdout
 
 codecs:
     a list of codecs(en/de-coders), input will be passed and transformed from
@@ -25,7 +28,7 @@ codec-options:
     lower case options are switch(boolean) options, so they take no argument.
 
     upper case options take one argument. the argument can be provided with plain
-    string or by sub-codecs syntax: [codecs plain-string]. If you use sub-codecs
+    string or by sub-codecs syntax: [plain-string codecs]. If you use sub-codecs
     syntax, the codecs inside [] will be run on `plain-string` as input, and the
     output is used as the argument.
 ```
@@ -38,7 +41,7 @@ codec -d base64 zlib
 Decode base64 on input, and then decompress with zlib.
 
 ```
-codec aes-ecb -K [hex -d 12345678901234561234567890123456] base64
+codec aes-ecb -K [12345678901234561234567890123456 hex -d] base64
 ```
 Decode hex string `12345678901234561234567890123456`, and set it as aes-ecb key.
 Encrypt the input, and then encode with base64. Note that unlike `openssl`, aes

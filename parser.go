@@ -150,6 +150,8 @@ func parseText(tokenizer *tokenizer) (text_ *text, err error) {
 	// TODO: escape parenthesis
 	if str == openingParenthesis {
 		text_.textType = textTypeCodec
+		text_.string = tokenizer.next()
+
 		for {
 			codec, err := parseCodec(tokenizer)
 			if err != nil {
@@ -166,12 +168,7 @@ func parseText(tokenizer *tokenizer) (text_ *text, err error) {
 			return nil, fmt.Errorf("expect %s, found %s", closingParenthesis, n)
 		}
 
-		if codecLen := len(text_.codecs); codecLen < 1 || len(text_.codecs[codecLen-1].options) != 0 {
-			return nil, errors.New("missing string in the end of codecs")
-		}
-
-		text_.string = text_.codecs[len(text_.codecs)-1].name
-		text_.codecs = text_.codecs[:len(text_.codecs)-1]
+		text_.codecs = text_.codecs
 	} else {
 		text_.textType = textTypeString
 		text_.string = str

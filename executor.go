@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,45 +13,72 @@ import (
 )
 
 const (
-	optionEncoding = "e"
-	optionDecoding = "d"
-	optionNewLine  = "n"
+	optionEncoding    = "e"
+	optionDecoding    = "d"
+	optionNewLine     = "n"
+	optionInputString = "I"
+	optionInputFile   = "F"
+	optionOutputFile  = "O"
 )
 
 type executor struct {
 	codecsMap map[string]codecs.Codec
 }
 
-func (e *executor) execute(command *command, output io.Writer) (err error) {
+func (e *executor) execute(command *command) (err error) {
 	globalMode := codecs.CodecModeEncoding
-	endWithNewLine := false
 
-	for _, option := range command.options {
-		switch option.name {
+	for _, o := range command.options {
+		switch o.name {
 		case optionDecoding:
 			globalMode = codecs.CodecModeDecoding
 		case optionNewLine:
-			endWithNewLine = true
+			newLineCodec := codec{
+				name: "newline",
+			}
+			command.codecs = append(command.codecs, newLineCodec)
+		case optionInputString:
+			if o.text.textType != textTypeString {
+				return errors.New("main option -I cannot have codecs syntax")
+			}
+			constCodec := codec{
+				name: "const",
+				options: []option{
+					{
+						optionType: optionTypeValue,
+						name:       "C",
+						text:       o.text,
+					},
+				},
+			}
+			command.codecs = append([]codec{constCodec}, command.codecs...)
+
+		case optionOutputFile:
+			if o.text.textType != textTypeString {
+				return errors.New("main option -O cannot have codecs syntax")
+			}
+			sinkCodec := codec{
+				name: "redirect",
+				options: []option{
+					{
+						optionType: optionTypeValue,
+						name:       "O",
+						text:       o.text,
+					},
+				},
+			}
+			command.codecs = append(command.codecs, sinkCodec)
+		default:
+			return fmt.Errorf("unknown option: %s", o.name)
 		}
 
 	}
 
-	var input io.Reader
-
-	if command.string == "" {
-		input = os.Stdin
-	} else {
-		input = strings.NewReader(command.string)
-	}
-
-	err = e.runCodecs(input, command.codecs, globalMode, output)
+	err = e.runCodecs(os.Stdin, command.codecs, globalMode, os.Stdout)
 	if err != nil {
 		return
 	}
 
-	if endWithNewLine {
-		_, err = output.Write([]byte{'\n'})
-	}
 	return
 }
 

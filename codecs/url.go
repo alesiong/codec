@@ -10,7 +10,7 @@ import (
 type urlCodecs struct {
 }
 
-func (h urlCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (h urlCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	escape := url.QueryEscape
 	unescape := url.QueryUnescape
 
@@ -24,12 +24,12 @@ func (h urlCodecs) Execute(input io.Reader, globalMode CodecMode, options map[st
 		err = ReadToWriter(input, &escapeWriter{
 			escape: escape,
 			writer: output,
-		}, output)
+		})
 	case CodecModeDecoding:
 		err = ReadToWriter(input, &unescapeWriter{
 			unescape: unescape,
 			writer:   output,
-		}, output)
+		})
 	default:
 		return errors.New("invalid codec mode")
 	}

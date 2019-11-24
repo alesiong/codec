@@ -12,7 +12,7 @@ const (
 )
 
 type Codec interface {
-	Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error)
+	RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error)
 }
 
 var (

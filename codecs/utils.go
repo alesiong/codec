@@ -8,7 +8,7 @@ const (
 	bufferSize = 8192
 )
 
-func ReadToWriter(reader io.Reader, writer io.Writer, closer io.Closer) (err error) {
+func ReadToWriter(reader io.Reader, writer io.Writer) (err error) {
 	buf := make([]byte, bufferSize)
 	n := 0
 	for {
@@ -35,9 +35,6 @@ func ReadToWriter(reader io.Reader, writer io.Writer, closer io.Closer) (err err
 		if err == io.EOF {
 			break
 		}
-	}
-	if closer != nil {
-		return closer.Close()
 	}
 	return nil
 }

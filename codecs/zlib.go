@@ -10,7 +10,7 @@ import (
 type zlibCodec struct {
 }
 
-func (b zlibCodec) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (b zlibCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	level := -1
 	if options["L"] != "" {
 		level, err = strconv.Atoi(options["L"])
@@ -21,33 +21,33 @@ func (b zlibCodec) Execute(input io.Reader, globalMode CodecMode, options map[st
 
 	switch globalMode {
 	case CodecModeEncoding:
-		var w *zlib.Writer
-		w, err = zlib.NewWriterLevel(output, level)
+		var zlibWriter *zlib.Writer
+		zlibWriter, err = zlib.NewWriterLevel(output, level)
 		if err != nil {
 			return
 		}
-		err = ReadToWriter(input, w, w)
+		err = ReadToWriter(input, zlibWriter)
 		if err != nil {
 			return
 		}
-		err = output.Close()
+		err = zlibWriter.Close()
 		if err != nil {
 			return
 		}
 
 		return
 	case CodecModeDecoding:
-		var r io.ReadCloser
-		r, err = zlib.NewReader(input)
+		var zlibReader io.ReadCloser
+		zlibReader, err = zlib.NewReader(input)
 		if err != nil {
 			return
 		}
-		err = ReadToWriter(r, output, output)
+		err = ReadToWriter(zlibReader, output)
 		if err != nil {
 			return
 		}
 
-		err = r.Close()
+		err = zlibReader.Close()
 		if err != nil {
 			return
 		}

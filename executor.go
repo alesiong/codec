@@ -88,6 +88,7 @@ func (e *executor) runCodecs(input io.Reader, codecList []codec, mode codecs.Cod
 	for _, c := range codecList {
 		buf := codecs.BlockingReader{Chan: make(chan []byte)}
 		go func(input io.Reader, output io.WriteCloser, c codec) {
+			defer output.Close()
 			err = e.runCodec(input, &c, mode, output)
 			if err != nil {
 				panic(err)
@@ -98,11 +99,11 @@ func (e *executor) runCodecs(input io.Reader, codecList []codec, mode codecs.Cod
 		buffers = append(buffers, buf)
 	}
 
-	err = codecs.ReadToWriter(previousInput, output, nil)
+	err = codecs.ReadToWriter(previousInput, output)
 	return
 }
 
-func (e *executor) runCodec(input io.Reader, codec *codec, mode codecs.CodecMode, output io.WriteCloser) (err error) {
+func (e *executor) runCodec(input io.Reader, codec *codec, mode codecs.CodecMode, output io.Writer) (err error) {
 	options, err := e.makeCodecOptions(codec)
 	if err != nil {
 		return
@@ -115,7 +116,7 @@ func (e *executor) runCodec(input io.Reader, codec *codec, mode codecs.CodecMode
 	}
 
 	if c, ok := e.codecsMap[codec.name]; ok {
-		return c.Execute(input, mode, options, output)
+		return c.RunCodec(input, mode, options, output)
 	} else {
 		return fmt.Errorf("codec not found: %s", codec.name)
 	}

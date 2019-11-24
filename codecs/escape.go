@@ -10,7 +10,7 @@ import (
 type escapeCodecs struct {
 }
 
-func (h escapeCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (h escapeCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	escape := func(str string) string {
 		result := strconv.Quote(str)
 		return result[1 : len(result)-1]
@@ -25,12 +25,12 @@ func (h escapeCodecs) Execute(input io.Reader, globalMode CodecMode, options map
 		err = ReadToWriter(input, &escapeWriter{
 			escape: escape,
 			writer: output,
-		}, output)
+		})
 	case CodecModeDecoding:
 		err = ReadToWriter(input, &unquoteWriter{
 			unquote: unescape,
 			writer:  output,
-		}, output)
+		})
 	default:
 		return errors.New("invalid codec mode")
 	}

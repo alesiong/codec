@@ -167,8 +167,6 @@ func parseText(tokenizer *tokenizer) (text_ *text, err error) {
 		if n := tokenizer.next(); n != closingParenthesis {
 			return nil, fmt.Errorf("expect %s, found %s", closingParenthesis, n)
 		}
-
-		text_.codecs = text_.codecs
 	} else {
 		text_.textType = textTypeString
 		text_.string = str

@@ -9,7 +9,7 @@ import (
 type teeCodecs struct {
 }
 
-func (t teeCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (t teeCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	writers := make([]io.Writer, 0, 2)
 	if options["c"] == "" {
 		writers = append(writers, output)
@@ -24,31 +24,31 @@ func (t teeCodecs) Execute(input io.Reader, globalMode CodecMode, options map[st
 		defer file.Close()
 		writers = append(writers, file)
 	}
-	if len(writers) == 0 {
-		return output.Close()
-	}
+	// if len(writers) == 0 {
+	// 	return output.Close()
+	// }
 	writer := io.MultiWriter(writers...)
-	return ReadToWriter(input, writer, output)
+	return ReadToWriter(input, writer)
 }
 
 type sinkCodecs struct {
 	teeCodecs
 }
 
-func (s sinkCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
-	return s.teeCodecs.Execute(input, globalMode, map[string]string{"c": "*"}, output)
+func (s sinkCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+	return s.teeCodecs.RunCodec(input, globalMode, map[string]string{"c": "*"}, output)
 }
 
 type redirectCodecs struct {
 	teeCodecs
 }
 
-func (r redirectCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (r redirectCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	outputFile := options["O"]
 	if outputFile == "" {
 		return errors.New("redirect: missing required option output file (-O)")
 	}
-	return r.teeCodecs.Execute(input, globalMode, map[string]string{
+	return r.teeCodecs.RunCodec(input, globalMode, map[string]string{
 		"c": "*",
 		"O": outputFile,
 	}, output)

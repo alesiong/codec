@@ -10,7 +10,7 @@ import (
 type repeatCodecs struct {
 }
 
-func (r repeatCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (r repeatCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	times := 0
 	if options["T"] != "" {
 		times, err = strconv.Atoi(options["T"])
@@ -28,12 +28,14 @@ func (r repeatCodecs) Execute(input io.Reader, globalMode CodecMode, options map
 
 	for i := 0; i < times; i++ {
 		if i == 0 {
-			err = ReadToWriter(input, writer, nil)
+			err = ReadToWriter(input, writer)
 		} else {
-			err = ReadToWriter(bytes.NewReader(buffer.Bytes()), output, nil)
+			err = ReadToWriter(bytes.NewReader(buffer.Bytes()), output)
+		}
+		if err != nil {
+			return
 		}
 	}
-	err = output.Close()
 	return
 }
 
@@ -41,6 +43,6 @@ type idCodecs struct {
 	repeatCodecs
 }
 
-func (i idCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
-	return i.repeatCodecs.Execute(input, globalMode, map[string]string{"T": "1"}, output)
+func (i idCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+	return i.repeatCodecs.RunCodec(input, globalMode, map[string]string{"T": "1"}, output)
 }

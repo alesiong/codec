@@ -12,7 +12,7 @@ type aesCodec struct {
 	mode string
 }
 
-func (b aesCodec) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (b aesCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	key := options["K"]
 	if key == "" {
 		return errors.New("aes: missing required option key (-K)")
@@ -55,12 +55,6 @@ func (b aesCodec) Execute(input io.Reader, globalMode CodecMode, options map[str
 	default:
 		return errors.New("invalid codec mode")
 	}
-
-	if err != nil {
-		return
-	}
-
-	err = output.Close()
 	return
 }
 

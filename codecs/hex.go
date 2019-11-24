@@ -10,7 +10,7 @@ import (
 type hexCodecs struct {
 }
 
-func (h hexCodecs) Execute(input io.Reader, globalMode CodecMode, options map[string]string, output io.WriteCloser) (err error) {
+func (h hexCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
 	useCapital := false
 
 	if options["c"] != "" {
@@ -26,11 +26,11 @@ func (h hexCodecs) Execute(input io.Reader, globalMode CodecMode, options map[st
 		} else {
 			encoder = hex.NewEncoder(output)
 		}
-		err = ReadToWriter(input, encoder, output)
+		err = ReadToWriter(input, encoder)
 
 	case CodecModeDecoding:
 		decoder := hex.NewDecoder(input)
-		err = ReadToWriter(decoder, output, output)
+		err = ReadToWriter(decoder, output)
 
 	default:
 		return errors.New("invalid codec mode")

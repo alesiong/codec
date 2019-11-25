@@ -138,6 +138,7 @@ func parseCodec(tokenizer *tokenizer) (codec_ *codec, err error) {
 func parseText(tokenizer *tokenizer) (text_ *text, err error) {
 	str := tokenizer.peek()
 
+	// TODO: allow empty option value
 	if str == "" {
 		err = errors.New("EOF when parsing")
 		return
@@ -148,6 +149,7 @@ func parseText(tokenizer *tokenizer) (text_ *text, err error) {
 	text_ = new(text)
 
 	// TODO: escape parenthesis
+	// TODO: allow empty sub-codecs syntax
 	if str == openingParenthesis {
 		text_.textType = textTypeCodec
 		text_.string = tokenizer.next()

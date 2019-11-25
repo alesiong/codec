@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -38,9 +37,6 @@ func (e *executor) execute(command *command) (err error) {
 			}
 			command.codecs = append(command.codecs, newLineCodec)
 		case optionInputString:
-			if o.text.textType != textTypeString {
-				return errors.New("main option -I cannot have codecs syntax")
-			}
 			constCodec := codec{
 				name: "const",
 				options: []option{
@@ -52,11 +48,23 @@ func (e *executor) execute(command *command) (err error) {
 				},
 			}
 			command.codecs = append([]codec{constCodec}, command.codecs...)
-
-		case optionOutputFile:
-			if o.text.textType != textTypeString {
-				return errors.New("main option -O cannot have codecs syntax")
+		case optionInputFile:
+			catCodec := codec{
+				name: "cat",
+				options: []option{
+					{
+						optionType: optionTypeSwitch,
+						name:       "c",
+					},
+					{
+						optionType: optionTypeValue,
+						name:       "F",
+						text:       o.text,
+					},
+				},
 			}
+			command.codecs = append([]codec{catCodec}, command.codecs...)
+		case optionOutputFile:
 			sinkCodec := codec{
 				name: "redirect",
 				options: []option{

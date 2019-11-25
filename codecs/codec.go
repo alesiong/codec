@@ -34,4 +34,5 @@ var (
 	Sink     Codec = sinkCodecs{}
 	Append   Codec = appendCodecs{}
 	Newline  Codec = newLineCodecs{}
+	Cat      Codec = catCodecs{}
 )

@@ -66,5 +66,6 @@ func loadCodecs() map[string]codecs.Codec {
 		"append":   codecs.Append,
 		"newline":  codecs.Newline,
 		"escape":   codecs.Escape,
+		"cat":      codecs.Cat,
 	}
 }

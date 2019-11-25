@@ -12,10 +12,10 @@ codec options codecs
 options:
     -e (default): set the global coding mode to encode
     -d: set the global coding mode to decode
-    -n: append new line ('\n') at the end of output
-    -I string: use `string` as input instead of stdin
+    -n: append new line ('\n') at the end of output (= insert `newline` after)
+    -I string: use `string` as input instead of stdin (= insert `const -C` before)
     -F file: use content of `file` as input instead of stdin
-    -O file: use `file` as output instead of stdout
+    -O file: use `file` as output instead of stdout (= insert `tee -O` after)
 
 codecs:
     a list of codecs(en/de-coders), input will be passed and transformed from
@@ -75,9 +75,48 @@ sha256
 md5
 
 zlib
-    -L level: compress level (int, [-2, 9])
+    -L level: compress level (int, [-2, 9], default -1)
+
+id
+    pass input to output as is
+
+const
+    -C replacement: ingore input, and replace the output with `replacement`
+
+repeat
+    -T times: repeat input for `times` times (int, >=0, default 0)
+
+tee
+    (if with no argument, behave like `id`)
+    -c: (close output) do not write to output
+    -O file: also write to `file`, optional
+
+redirect
+    = tee -c -O `file`
+    -O file: redirect output to `file` 
+
+sink
+    (= tee -c or redirect -O /dev/null on unix-like systems)
+    differences with repeat: repeat without arguments (=repeat -T 0) will end the
+    execution of the whole chain immediately, e.g.:
+    const -C example tee -O /dev/stdout sink
+        will output example
+    const -C example tee -O /dev/stdout repeat
+        will output nothing
+
+append
+    -A string: pass input to output, and then append `string`
+
+newline
+    (= append -A ['\n' escape -d])
+    append new line
+
+escape
+    escape/unescape with Go string escaping sequences
 ```
 
 # TODO
 1. refactor code
 2. load codecs as go plugins
+3. usage
+4. codec aliases

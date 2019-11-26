@@ -1,20 +1,22 @@
-package codecs
+package builtins
 
 import (
 	"errors"
 	"io"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type appendCodecs struct {
 }
 
-func (a appendCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (a appendCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	value := options["A"]
 	if value == "" {
 		return errors.New("append: missing required option append value (-A)")
 	}
 
-	err = ReadToWriter(input, output)
+	err = codecs.ReadToWriter(input, output)
 	if err != nil {
 		return
 	}
@@ -26,7 +28,7 @@ type newLineCodecs struct {
 	appendCodecs
 }
 
-func (a newLineCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (a newLineCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	return a.appendCodecs.RunCodec(input, globalMode, map[string]string{
 		"A": "\n",
 	}, output)

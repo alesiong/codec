@@ -1,4 +1,4 @@
-package codecs
+package builtins
 
 import (
 	"crypto/md5"
@@ -6,13 +6,15 @@ import (
 	"errors"
 	"hash"
 	"io"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type hashCodecs struct {
 	mode string
 }
 
-func (h hashCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (h hashCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	var hasher hash.Hash
 	switch h.mode {
 	case "md5":
@@ -25,13 +27,13 @@ func (h hashCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[
 	}
 
 	switch globalMode {
-	case CodecModeEncoding:
-		err = ReadToWriter(input, hasher)
+	case codecs.CodecModeEncoding:
+		err = codecs.ReadToWriter(input, hasher)
 		if err != nil {
 			return
 		}
 		_, err = output.Write(hasher.Sum(nil))
-	case CodecModeDecoding:
+	case codecs.CodecModeDecoding:
 		return errors.New("hash: cannot decode")
 	default:
 		return errors.New("invalid codec mode")

@@ -1,16 +1,18 @@
-package codecs
+package builtins
 
 import (
 	"bytes"
 	"errors"
 	"io"
 	"strconv"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type repeatCodecs struct {
 }
 
-func (r repeatCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (r repeatCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	times := 0
 	if options["T"] != "" {
 		times, err = strconv.Atoi(options["T"])
@@ -28,9 +30,9 @@ func (r repeatCodecs) RunCodec(input io.Reader, globalMode CodecMode, options ma
 
 	for i := 0; i < times; i++ {
 		if i == 0 {
-			err = ReadToWriter(input, writer)
+			err = codecs.ReadToWriter(input, writer)
 		} else {
-			err = ReadToWriter(bytes.NewReader(buffer.Bytes()), output)
+			err = codecs.ReadToWriter(bytes.NewReader(buffer.Bytes()), output)
 		}
 		if err != nil {
 			return
@@ -43,6 +45,6 @@ type idCodecs struct {
 	repeatCodecs
 }
 
-func (i idCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (i idCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	return i.repeatCodecs.RunCodec(input, globalMode, map[string]string{"T": "1"}, output)
 }

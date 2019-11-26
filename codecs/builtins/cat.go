@@ -1,22 +1,24 @@
-package codecs
+package builtins
 
 import (
 	"errors"
 	"io"
 	"os"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type catCodecs struct {
 }
 
-func (c catCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (c catCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	inputFile := options["F"]
 	if inputFile == "" {
 		return errors.New("cat: missing required option output file (-F)")
 	}
 
 	if options["c"] == "" {
-		err = ReadToWriter(input, output)
+		err = codecs.ReadToWriter(input, output)
 		if err != nil {
 			return
 		}
@@ -26,5 +28,5 @@ func (c catCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[s
 		return
 	}
 	defer file.Close()
-	return ReadToWriter(file, output)
+	return codecs.ReadToWriter(file, output)
 }

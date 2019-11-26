@@ -12,10 +12,10 @@ codec options codecs
 options:
     -e (default): set the global coding mode to encode
     -d: set the global coding mode to decode
-    -n: append new line ('\n') at the end of output (= insert `newline` after)
+    -n: append new line ('\n') at the end of output (= append `newline` after)
     -I string: use `string` as input instead of stdin (= insert `const -C` before)
-    -F file: use content of `file` as input instead of stdin
-    -O file: use `file` as output instead of stdout (= insert `tee -O` after)
+    -F file: use content of `file` as input instead of stdin (= insert `cat -c -F` before)
+    -O file: use `file` as output instead of stdout (= append `tee -O` after)
 
 codecs:
     a list of codecs(en/de-coders), input will be passed and transformed from
@@ -113,6 +113,11 @@ newline
 
 escape
     escape/unescape with Go string escaping sequences
+
+cat
+    (if with no argument, behave like `id`)
+    -c: (close input) do not read from input
+    -F file: also read from `file`, optional
 ```
 
 # TODO

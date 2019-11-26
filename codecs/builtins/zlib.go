@@ -1,16 +1,18 @@
-package codecs
+package builtins
 
 import (
 	"compress/zlib"
 	"errors"
 	"io"
 	"strconv"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type zlibCodec struct {
 }
 
-func (b zlibCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (b zlibCodec) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	level := -1
 	if options["L"] != "" {
 		level, err = strconv.Atoi(options["L"])
@@ -20,13 +22,13 @@ func (b zlibCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[s
 	}
 
 	switch globalMode {
-	case CodecModeEncoding:
+	case codecs.CodecModeEncoding:
 		var zlibWriter *zlib.Writer
 		zlibWriter, err = zlib.NewWriterLevel(output, level)
 		if err != nil {
 			return
 		}
-		err = ReadToWriter(input, zlibWriter)
+		err = codecs.ReadToWriter(input, zlibWriter)
 		if err != nil {
 			return
 		}
@@ -36,13 +38,13 @@ func (b zlibCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[s
 		}
 
 		return
-	case CodecModeDecoding:
+	case codecs.CodecModeDecoding:
 		var zlibReader io.ReadCloser
 		zlibReader, err = zlib.NewReader(input)
 		if err != nil {
 			return
 		}
-		err = ReadToWriter(zlibReader, output)
+		err = codecs.ReadToWriter(zlibReader, output)
 		if err != nil {
 			return
 		}

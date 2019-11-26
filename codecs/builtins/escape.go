@@ -1,16 +1,18 @@
-package codecs
+package builtins
 
 import (
 	"bytes"
 	"errors"
 	"io"
 	"strconv"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type escapeCodecs struct {
 }
 
-func (h escapeCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (h escapeCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	escape := func(str string) string {
 		result := strconv.Quote(str)
 		return result[1 : len(result)-1]
@@ -21,13 +23,13 @@ func (h escapeCodecs) RunCodec(input io.Reader, globalMode CodecMode, options ma
 	}
 
 	switch globalMode {
-	case CodecModeEncoding:
-		err = ReadToWriter(input, &escapeWriter{
+	case codecs.CodecModeEncoding:
+		err = codecs.ReadToWriter(input, &escapeWriter{
 			escape: escape,
 			writer: output,
 		})
-	case CodecModeDecoding:
-		err = ReadToWriter(input, &unquoteWriter{
+	case codecs.CodecModeDecoding:
+		err = codecs.ReadToWriter(input, &unquoteWriter{
 			unquote: unescape,
 			writer:  output,
 		})
@@ -71,5 +73,6 @@ func (u *unquoteWriter) Write(p []byte) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	return u.writer.Write([]byte(result))
+	_, err = u.writer.Write([]byte(result))
+	return len(p), err
 }

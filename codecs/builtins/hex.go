@@ -1,16 +1,18 @@
-package codecs
+package builtins
 
 import (
 	"bytes"
 	"encoding/hex"
 	"errors"
 	"io"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type hexCodecs struct {
 }
 
-func (h hexCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (h hexCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	useCapital := false
 
 	if options["c"] != "" {
@@ -18,7 +20,7 @@ func (h hexCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[s
 	}
 
 	switch globalMode {
-	case CodecModeEncoding:
+	case codecs.CodecModeEncoding:
 		var encoder io.Writer
 
 		if useCapital {
@@ -26,11 +28,11 @@ func (h hexCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[s
 		} else {
 			encoder = hex.NewEncoder(output)
 		}
-		err = ReadToWriter(input, encoder)
+		err = codecs.ReadToWriter(input, encoder)
 
-	case CodecModeDecoding:
+	case codecs.CodecModeDecoding:
 		decoder := hex.NewDecoder(input)
-		err = ReadToWriter(decoder, output)
+		err = codecs.ReadToWriter(decoder, output)
 
 	default:
 		return errors.New("invalid codec mode")
@@ -44,5 +46,7 @@ type capitalWriter struct {
 }
 
 func (c *capitalWriter) Write(p []byte) (n int, err error) {
-	return c.writer.Write(bytes.ToUpper(p))
+	n = len(p)
+	_, err = c.writer.Write(bytes.ToUpper(p))
+	return
 }

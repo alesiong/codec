@@ -1,16 +1,18 @@
-package codecs
+package builtins
 
 import (
 	"bytes"
 	"errors"
 	"io"
 	"net/url"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type urlCodecs struct {
 }
 
-func (h urlCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (h urlCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	escape := url.QueryEscape
 	unescape := url.QueryUnescape
 
@@ -20,13 +22,13 @@ func (h urlCodecs) RunCodec(input io.Reader, globalMode CodecMode, options map[s
 	}
 
 	switch globalMode {
-	case CodecModeEncoding:
-		err = ReadToWriter(input, &escapeWriter{
+	case codecs.CodecModeEncoding:
+		err = codecs.ReadToWriter(input, &escapeWriter{
 			escape: escape,
 			writer: output,
 		})
-	case CodecModeDecoding:
-		err = ReadToWriter(input, &unescapeWriter{
+	case codecs.CodecModeDecoding:
+		err = codecs.ReadToWriter(input, &unescapeWriter{
 			unescape: unescape,
 			writer:   output,
 		})
@@ -43,7 +45,9 @@ type escapeWriter struct {
 }
 
 func (e *escapeWriter) Write(p []byte) (n int, err error) {
-	return e.writer.Write([]byte(e.escape(string(p))))
+	n = len(p)
+	_, err = e.writer.Write([]byte(e.escape(string(p))))
+	return
 }
 
 type unescapeWriter struct {
@@ -75,5 +79,7 @@ func (u *unescapeWriter) Write(p []byte) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	return u.writer.Write([]byte(result))
+	n = len(p)
+	_, err = u.writer.Write([]byte(result))
+	return
 }

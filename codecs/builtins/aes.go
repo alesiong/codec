@@ -1,4 +1,4 @@
-package codecs
+package builtins
 
 import (
 	"bytes"
@@ -6,13 +6,15 @@ import (
 	"crypto/cipher"
 	"errors"
 	"io"
+
+	"github.com/alesiong/codec/codecs"
 )
 
 type aesCodec struct {
 	mode string
 }
 
-func (b aesCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[string]string, output io.Writer) (err error) {
+func (b aesCodec) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	key := options["K"]
 	if key == "" {
 		return errors.New("aes: missing required option key (-K)")
@@ -34,9 +36,9 @@ func (b aesCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[st
 		}
 		var c cipher.BlockMode
 		switch globalMode {
-		case CodecModeEncoding:
+		case codecs.CodecModeEncoding:
 			c = cipher.NewCBCEncrypter(crypto, []byte(iv))
-		case CodecModeDecoding:
+		case codecs.CodecModeDecoding:
 			c = cipher.NewCBCDecrypter(crypto, []byte(iv))
 		default:
 			return errors.New("invalid codec mode")
@@ -48,9 +50,9 @@ func (b aesCodec) RunCodec(input io.Reader, globalMode CodecMode, options map[st
 	}
 
 	switch globalMode {
-	case CodecModeEncoding:
+	case codecs.CodecModeEncoding:
 		err = encrypt(input, output, encryptFunc, blockSize, pkcs5Pad)
-	case CodecModeDecoding:
+	case codecs.CodecModeDecoding:
 		err = decrypt(input, output, decryptFunc, blockSize, pkcs5Unpad)
 	default:
 		return errors.New("invalid codec mode")

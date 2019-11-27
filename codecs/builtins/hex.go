@@ -28,11 +28,11 @@ func (h hexCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 		} else {
 			encoder = hex.NewEncoder(output)
 		}
-		err = codecs.ReadToWriter(input, encoder)
+		_, err = io.Copy(encoder, input)
 
 	case codecs.CodecModeDecoding:
 		decoder := hex.NewDecoder(input)
-		err = codecs.ReadToWriter(decoder, output)
+		_, err = io.Copy(output, decoder)
 
 	default:
 		return errors.New("invalid codec mode")

@@ -30,9 +30,9 @@ func (r repeatCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, opt
 
 	for i := 0; i < times; i++ {
 		if i == 0 {
-			err = codecs.ReadToWriter(input, writer)
+			_, err = io.Copy(writer, input)
 		} else {
-			err = codecs.ReadToWriter(bytes.NewReader(buffer.Bytes()), output)
+			_, err = io.Copy(output, bytes.NewReader(buffer.Bytes()))
 		}
 		if err != nil {
 			return

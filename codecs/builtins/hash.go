@@ -28,7 +28,7 @@ func (h hashCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, optio
 
 	switch globalMode {
 	case codecs.CodecModeEncoding:
-		err = codecs.ReadToWriter(input, hasher)
+		_, err = io.Copy(hasher, input)
 		if err != nil {
 			return
 		}

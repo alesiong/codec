@@ -38,9 +38,9 @@ func (c charsetCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, op
 
 	switch globalMode {
 	case codecs.CodecModeEncoding:
-		err = codecs.ReadToWriter(input, transform.NewWriter(output, encoder.NewEncoder()))
+		_, err = io.Copy(transform.NewWriter(output, encoder.NewEncoder()), input)
 	case codecs.CodecModeDecoding:
-		err = codecs.ReadToWriter(transform.NewReader(input, encoder.NewDecoder()), output)
+		_, err = io.Copy(output, transform.NewReader(input, encoder.NewDecoder()))
 	default:
 		return errors.New("invalid codec mode")
 	}

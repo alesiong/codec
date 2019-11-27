@@ -1,7 +1,7 @@
-ALL = ${shell find . -type d}
+ALL = tr.so charset.so
 
 .PHONY: all
 all: $(ALL)
 
-%: %.so
-	go build -buildmode=plugin $@/*
+%.so: %
+	go build -buildmode=plugin $</*

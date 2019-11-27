@@ -19,7 +19,8 @@ func (t trCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options
 	if to == "" {
 		return errors.New("tr: missing required option to string (-T)")
 	}
-	return codecs.ReadToWriter(input, &trWriter{from, to, output})
+	_, err = io.Copy(&trWriter{from, to, output}, input)
+	return
 }
 
 type trWriter struct {

@@ -20,7 +20,7 @@ func (b base64Codec) RunCodec(input io.Reader, globalMode codecs.CodecMode, opti
 	switch globalMode {
 	case codecs.CodecModeEncoding:
 		encoder := base64.NewEncoder(encoding, output)
-		err = codecs.ReadToWriter(input, encoder)
+		_, err = io.Copy(encoder, input)
 		if err != nil {
 			return
 		}
@@ -28,7 +28,7 @@ func (b base64Codec) RunCodec(input io.Reader, globalMode codecs.CodecMode, opti
 		return
 	case codecs.CodecModeDecoding:
 		decoder := base64.NewDecoder(encoding, input)
-		err = codecs.ReadToWriter(decoder, output)
+		_, err = io.Copy(output, decoder)
 		return
 	default:
 		return errors.New("invalid codec mode")

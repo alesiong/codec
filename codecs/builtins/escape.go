@@ -24,14 +24,14 @@ func (h escapeCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, opt
 
 	switch globalMode {
 	case codecs.CodecModeEncoding:
-		err = codecs.ReadToWriter(input, &escapeWriter{
+		_, err = io.Copy(&escapeWriter{
 			escape: escape,
 			writer: output,
-		})
+		}, input)
 	case codecs.CodecModeDecoding:
-		err = codecs.ReadToWriter(input, &unquoteWriter{
+		_, err = io.Copy(output, &unquoteReader{
 			unquote: unescape,
-			writer:  output,
+			reader:  input,
 		})
 	default:
 		return errors.New("invalid codec mode")
@@ -40,39 +40,58 @@ func (h escapeCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, opt
 	return
 }
 
-type unquoteWriter struct {
-	unquote func(string) (string, error)
-	writer  io.Writer
-	buffer  []byte
+type unquoteReader struct {
+	unquote      func(string) (string, error)
+	reader       io.Reader
+	writeBuffer  []byte
+	remainBuffer []byte
+	buffer       [1024]byte
 }
 
-func (u *unquoteWriter) Write(p []byte) (n int, err error) {
-	data := make([]byte, len(u.buffer), len(p)+len(u.buffer))
-	copy(data, u.buffer)
-	data = append(data, p...)
+func (u *unquoteReader) Read(p []byte) (n int, err error) {
+	if len(u.remainBuffer) > 0 {
+		n = copy(p, u.remainBuffer)
+		u.remainBuffer = u.remainBuffer[n:]
+		return
+	}
+
+	readN, readErr := u.reader.Read(u.buffer[:])
+	if readErr != nil && readErr != io.EOF {
+		return readN, readErr
+	}
+	data := make([]byte, len(u.writeBuffer), readN+len(u.writeBuffer))
+	copy(data, u.writeBuffer)
+	data = append(data, u.buffer[:readN]...)
 
 	lastSlashIndex := bytes.LastIndexByte(data, '\\')
 	length := len(data)
 	if lastSlashIndex >= 0 {
 		_, _, _, e := strconv.UnquoteChar(string(data[lastSlashIndex:]), '"')
 		if e == nil {
-			u.buffer = nil
+			u.writeBuffer = nil
 		} else {
-			u.buffer = make([]byte, length-lastSlashIndex)
-			copy(u.buffer, data[lastSlashIndex:])
+			if readErr == io.EOF {
+				return readN, e
+			}
+			u.writeBuffer = make([]byte, length-lastSlashIndex)
+			copy(u.writeBuffer, data[lastSlashIndex:])
 			data = data[:lastSlashIndex]
 		}
 	} else {
-		u.buffer = nil
+		u.writeBuffer = nil
 	}
 
 	if len(data) == 0 {
-		return len(p), nil
+		if u.writeBuffer != nil {
+			readErr = io.ErrUnexpectedEOF
+		}
+		return 0, readErr
 	}
 	result, err := u.unquote(string(data))
 	if err != nil {
 		return 0, err
 	}
-	_, err = u.writer.Write([]byte(result))
-	return len(p), err
+	n = copy(p, result)
+	u.remainBuffer = []byte(result)[n:]
+	return
 }

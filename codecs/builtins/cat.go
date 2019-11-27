@@ -18,7 +18,7 @@ func (c catCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 	}
 
 	if options["c"] == "" {
-		err = codecs.ReadToWriter(input, output)
+		_, err = io.Copy(output, input)
 		if err != nil {
 			return
 		}
@@ -28,5 +28,6 @@ func (c catCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 		return
 	}
 	defer file.Close()
-	return codecs.ReadToWriter(file, output)
+	_, err = io.Copy(output, file)
+	return
 }

@@ -28,7 +28,7 @@ func (b zlibCodec) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 		if err != nil {
 			return
 		}
-		err = codecs.ReadToWriter(input, zlibWriter)
+		_, err = io.Copy(zlibWriter, input)
 		if err != nil {
 			return
 		}
@@ -44,7 +44,7 @@ func (b zlibCodec) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 		if err != nil {
 			return
 		}
-		err = codecs.ReadToWriter(zlibReader, output)
+		_, err = io.Copy(output, zlibReader)
 		if err != nil {
 			return
 		}

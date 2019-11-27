@@ -92,22 +92,20 @@ func (e *executor) execute(command *command) (err error) {
 
 func (e *executor) runCodecs(input io.Reader, codecList []codec, mode codecs.CodecMode, output io.Writer) (err error) {
 	previousInput := input
-	buffers := make([]codecs.BlockingReader, 0, len(codecList))
 	for _, c := range codecList {
-		buf := codecs.BlockingReader{Chan: make(chan []byte)}
+		reader, writer := io.Pipe()
 		go func(input io.Reader, output io.WriteCloser, c codec) {
 			defer output.Close()
 			err = e.runCodec(input, &c, mode, output)
 			if err != nil {
 				panic(err)
 			}
-		}(previousInput, &buf, c)
+		}(previousInput, writer, c)
 
-		previousInput = &buf
-		buffers = append(buffers, buf)
+		previousInput = reader
 	}
 
-	err = codecs.ReadToWriter(previousInput, output)
+	_, err = io.Copy(output, previousInput)
 	return
 }
 

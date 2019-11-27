@@ -30,7 +30,8 @@ func (t teeCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 	// 	return output.Close()
 	// }
 	writer := io.MultiWriter(writers...)
-	return codecs.ReadToWriter(input, writer)
+	_, err = io.Copy(writer, input)
+	return
 }
 
 type sinkCodecs struct {

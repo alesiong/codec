@@ -16,7 +16,7 @@ func (a appendCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, opt
 		return errors.New("append: missing required option append value (-A)")
 	}
 
-	err = codecs.ReadToWriter(input, output)
+	_, err = io.Copy(output, input)
 	if err != nil {
 		return
 	}

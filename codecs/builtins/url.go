@@ -23,14 +23,14 @@ func (h urlCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 
 	switch globalMode {
 	case codecs.CodecModeEncoding:
-		err = codecs.ReadToWriter(input, &escapeWriter{
+		_, err = io.Copy(&escapeWriter{
 			escape: escape,
 			writer: output,
-		})
+		}, input)
 	case codecs.CodecModeDecoding:
-		err = codecs.ReadToWriter(input, &unescapeWriter{
+		_, err = io.Copy(output, &unescapeReader{
 			unescape: unescape,
-			writer:   output,
+			reader:   input,
 		})
 	default:
 		return errors.New("invalid codec mode")
@@ -50,36 +50,51 @@ func (e *escapeWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-type unescapeWriter struct {
-	unescape func(string) (string, error)
-	writer   io.Writer
-	buffer   []byte
+type unescapeReader struct {
+	unescape     func(string) (string, error)
+	reader       io.Reader
+	writeBuffer  []byte
+	remainBuffer []byte
+	buffer       [1024]byte
 }
 
-func (u *unescapeWriter) Write(p []byte) (n int, err error) {
-	data := make([]byte, len(u.buffer), len(p)+len(u.buffer))
-	copy(data, u.buffer)
-	data = append(data, p...)
+func (u *unescapeReader) Read(p []byte) (n int, err error) {
+	if len(u.remainBuffer) > 0 {
+		n = copy(p, u.remainBuffer)
+		u.remainBuffer = u.remainBuffer[n:]
+		return
+	}
+
+	readN, readErr := u.reader.Read(u.buffer[:])
+	if readErr != nil && readErr != io.EOF {
+		return readN, readErr
+	}
+	data := make([]byte, len(u.writeBuffer), readN+len(u.writeBuffer))
+	copy(data, u.writeBuffer)
+	data = append(data, u.buffer[:readN]...)
 
 	lastPercentIndex := bytes.LastIndexByte(data, '%')
 	length := len(data)
 	if lastPercentIndex >= 0 && lastPercentIndex >= length-2 {
-		u.buffer = make([]byte, length-lastPercentIndex)
-		copy(u.buffer, data[lastPercentIndex:])
+		u.writeBuffer = make([]byte, length-lastPercentIndex)
+		copy(u.writeBuffer, data[lastPercentIndex:])
 		data = data[:lastPercentIndex]
 	} else {
-		u.buffer = nil
+		u.writeBuffer = nil
 	}
 
 	if len(data) == 0 {
-		return len(p), nil
+		if u.writeBuffer != nil {
+			readErr = io.ErrUnexpectedEOF
+		}
+		return 0, readErr
 	}
 
 	result, err := u.unescape(string(data))
 	if err != nil {
 		return 0, err
 	}
-	n = len(p)
-	_, err = u.writer.Write([]byte(result))
+	n = copy(p, result)
+	u.remainBuffer = []byte(result)[n:]
 	return
 }

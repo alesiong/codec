@@ -12,6 +12,10 @@ import (
 type hexCodecs struct {
 }
 
+func init() {
+	codecs.Register("hex", hexCodecs{})
+}
+
 func (h hexCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	useCapital := false
 

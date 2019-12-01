@@ -14,6 +14,11 @@ type hashCodecs struct {
 	mode string
 }
 
+func init() {
+	codecs.Register("md5", hashCodecs{mode: "md5"})
+	codecs.Register("sha256", hashCodecs{mode: "sha256"})
+}
+
 func (h hashCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	var hasher hash.Hash
 	switch h.mode {

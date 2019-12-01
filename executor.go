@@ -18,15 +18,15 @@ const (
 	optionInputString = "I"
 	optionInputFile   = "F"
 	optionOutputFile  = "O"
+	optionHelp        = "h"
 )
 
-type executor struct {
-	codecsMap map[string]codecs.Codec
-}
+type executor struct{}
 
-func (e *executor) execute(command *command) (err error) {
+func (e executor) execute(command *command) (err error) {
 	globalMode := codecs.CodecModeEncoding
 
+loop:
 	for _, o := range command.options {
 		switch o.name {
 		case optionDecoding:
@@ -76,6 +76,12 @@ func (e *executor) execute(command *command) (err error) {
 				},
 			}
 			command.codecs = append(command.codecs, sinkCodec)
+		case optionHelp:
+			usageCodec := codec{
+				name: "usage",
+			}
+			command.codecs = []codec{usageCodec}
+			break loop
 		default:
 			return fmt.Errorf("unknown option: %s", o.name)
 		}
@@ -90,7 +96,7 @@ func (e *executor) execute(command *command) (err error) {
 	return
 }
 
-func (e *executor) runCodecs(input io.Reader, codecList []codec, mode codecs.CodecMode, output io.Writer) (err error) {
+func (e executor) runCodecs(input io.Reader, codecList []codec, mode codecs.CodecMode, output io.Writer) (err error) {
 	previousInput := input
 	for _, c := range codecList {
 		reader, writer := io.Pipe()
@@ -98,6 +104,7 @@ func (e *executor) runCodecs(input io.Reader, codecList []codec, mode codecs.Cod
 			defer output.Close()
 			err = e.runCodec(input, &c, mode, output)
 			if err != nil {
+				err = fmt.Errorf("error in %s: %w", c.name, err)
 				panic(err)
 			}
 		}(previousInput, writer, c)
@@ -109,7 +116,7 @@ func (e *executor) runCodecs(input io.Reader, codecList []codec, mode codecs.Cod
 	return
 }
 
-func (e *executor) runCodec(input io.Reader, codec *codec, mode codecs.CodecMode, output io.Writer) (err error) {
+func (e executor) runCodec(input io.Reader, codec *codec, mode codecs.CodecMode, output io.Writer) (err error) {
 	options, err := e.makeCodecOptions(codec)
 	if err != nil {
 		return
@@ -121,14 +128,14 @@ func (e *executor) runCodec(input io.Reader, codec *codec, mode codecs.CodecMode
 		mode = codecs.CodecModeDecoding
 	}
 
-	if c, ok := e.codecsMap[codec.name]; ok {
+	if c := codecs.Lookup(codec.name); c != nil {
 		return c.RunCodec(input, mode, options, output)
 	} else {
 		return fmt.Errorf("codec not found: %s", codec.name)
 	}
 }
 
-func (e *executor) makeCodecOptions(codec *codec) (option map[string]string, err error) {
+func (e executor) makeCodecOptions(codec *codec) (option map[string]string, err error) {
 	option = make(map[string]string)
 
 	for _, o := range codec.options {

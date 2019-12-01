@@ -6,12 +6,33 @@ import (
 	"crypto/cipher"
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/alesiong/codec/codecs"
 )
 
 type aesCodec struct {
 	mode string
+}
+
+func init() {
+	codecs.Register("aes-cbc", aesCodec{mode: "cbc"})
+	codecs.Register("aes-ecb", aesCodec{mode: "ecb"})
+}
+
+func (b aesCodec) Usage() string {
+	switch b.mode {
+	case "cbc":
+		return strings.TrimLeft(`
+    -K key
+    -IV iv
+`, "\n")
+	case "ecb":
+		return strings.TrimLeft(`
+    -K key
+`, "\n")
+	}
+	return ""
 }
 
 func (b aesCodec) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {

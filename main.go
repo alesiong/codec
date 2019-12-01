@@ -8,8 +8,8 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/alesiong/codec/codecs"
-	"github.com/alesiong/codec/codecs/builtins"
+	_ "github.com/alesiong/codec/codecs/builtins"
+	_ "github.com/alesiong/codec/codecs/meta"
 )
 
 func main() {
@@ -19,11 +19,9 @@ func main() {
 
 	command := parseCommand(&tokenizer)
 
-	codecsMap := loadCodecs()
+	loadPlugins()
 
-	executor := executor{
-		codecsMap: codecsMap,
-	}
+	executor := executor{}
 
 	// TODO: eliminate panic
 	err := executor.execute(&command)
@@ -53,35 +51,13 @@ func parseCommand(tokenizer *tokenizer) (command command) {
 	return
 }
 
-func loadCodecs() map[string]codecs.Codec {
-	builtIns := map[string]codecs.Codec{
-		"aes-cbc":  builtins.AesCbc,
-		"aes-ecb":  builtins.AesEcb,
-		"base64":   builtins.Base64,
-		"hex":      builtins.Hex,
-		"url":      builtins.Url,
-		"sha256":   builtins.Sha256,
-		"md5":      builtins.Md5,
-		"zlib":     builtins.Zlib,
-		"id":       builtins.Id,
-		"const":    builtins.Const,
-		"repeat":   builtins.Repeat,
-		"tee":      builtins.Tee,
-		"redirect": builtins.Redirect,
-		"sink":     builtins.Sink,
-		"append":   builtins.Append,
-		"newline":  builtins.Newline,
-		"escape":   builtins.Escape,
-		"cat":      builtins.Cat,
-	}
-	loadPlugins(builtIns)
-	return builtIns
-}
-
-func loadPlugins(codecsMap map[string]codecs.Codec) {
+func loadPlugins() {
 	files, err := ioutil.ReadDir("plugins")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error when loading plugins:", err)
+		if !os.IsNotExist(err) {
+			fmt.Fprintln(os.Stderr, "error when loading plugins:", err)
+		}
+		return
 	}
 	for _, f := range files {
 		const pluginExtension = ".so"
@@ -89,20 +65,8 @@ func loadPlugins(codecsMap map[string]codecs.Codec) {
 			continue
 		}
 		pluginKey := strings.TrimSuffix(f.Name(), pluginExtension)
-		p, err := plugin.Open("plugins/" + f.Name())
+		_, err := plugin.Open("plugins/" + f.Name())
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error when loading plugin %s: %v\n", pluginKey, err)
-			continue
-		}
-		codec, err := p.Lookup("CodecPlugin")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error when loading plugin %s: %v\n", pluginKey, err)
-			continue
-		}
-		c, ok := codec.(*codecs.Codec)
-		if ok {
-			codecsMap[pluginKey] = *c
-		} else {
 			fmt.Fprintf(os.Stderr, "error when loading plugin %s: %v\n", pluginKey, err)
 			continue
 		}

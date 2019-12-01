@@ -10,6 +10,10 @@ import (
 type trCodecs struct {
 }
 
+func init() {
+	codecs.Register("tr", trCodecs{})
+}
+
 func (t trCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	from := options["F"]
 	if from == "" {

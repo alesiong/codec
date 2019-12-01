@@ -5,11 +5,23 @@ import (
 	"errors"
 	"io"
 	"net/url"
+	"strings"
 
 	"github.com/alesiong/codec/codecs"
 )
 
 type urlCodecs struct {
+}
+
+func init() {
+	codecs.Register("url", urlCodecs{})
+}
+
+func (h urlCodecs) Usage() string {
+	return strings.TrimLeft(`
+    url query escape/unescape
+    -p: use path escape instead of query escape
+`, "\n")
 }
 
 func (h urlCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {

@@ -7,6 +7,11 @@ import (
 	"github.com/alesiong/codec/codecs"
 )
 
+func init() {
+	codecs.Register("append", appendCodecs{})
+	codecs.Register("newline", newLineCodecs{})
+}
+
 type appendCodecs struct {
 }
 

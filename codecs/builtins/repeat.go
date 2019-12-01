@@ -9,7 +9,16 @@ import (
 	"github.com/alesiong/codec/codecs"
 )
 
+func init() {
+	codecs.Register("repeat", repeatCodecs{})
+	codecs.Register("id", idCodecs{})
+}
+
 type repeatCodecs struct {
+}
+
+func (r repeatCodecs) Usage() string {
+	return "    -T times: repeat input for `times` times (int, >=0, default 0)"
 }
 
 func (r repeatCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
@@ -43,6 +52,10 @@ func (r repeatCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, opt
 
 type idCodecs struct {
 	repeatCodecs
+}
+
+func (i idCodecs) Usage() string {
+	return "    pass input to output as is"
 }
 
 func (i idCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {

@@ -12,6 +12,10 @@ import (
 type escapeCodecs struct {
 }
 
+func init() {
+	codecs.Register("escape", escapeCodecs{})
+}
+
 func (h escapeCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	escape := func(str string) string {
 		result := strconv.Quote(str)

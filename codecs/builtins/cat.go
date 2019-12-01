@@ -11,6 +11,10 @@ import (
 type catCodecs struct {
 }
 
+func init() {
+	codecs.Register("cat", catCodecs{})
+}
+
 func (c catCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	inputFile := options["F"]
 	if inputFile == "" {

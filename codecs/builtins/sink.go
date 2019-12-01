@@ -8,6 +8,12 @@ import (
 	"github.com/alesiong/codec/codecs"
 )
 
+func init() {
+	codecs.Register("tee", teeCodecs{})
+	codecs.Register("sink", sinkCodecs{})
+	codecs.Register("redirect", redirectCodecs{})
+}
+
 type teeCodecs struct {
 }
 
@@ -26,9 +32,6 @@ func (t teeCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, option
 		defer file.Close()
 		writers = append(writers, file)
 	}
-	// if len(writers) == 0 {
-	// 	return output.Close()
-	// }
 	writer := io.MultiWriter(writers...)
 	_, err = io.Copy(writer, input)
 	return

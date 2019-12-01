@@ -11,6 +11,10 @@ import (
 type base64Codec struct {
 }
 
+func init() {
+	codecs.Register("base64", base64Codec{})
+}
+
 func (b base64Codec) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	encoding := base64.StdEncoding
 	if options["u"] != "" {

@@ -17,6 +17,10 @@ import (
 type charsetCodecs struct {
 }
 
+func init() {
+	codecs.Register("charset", charsetCodecs{})
+}
+
 func (c charsetCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	charset := options["C"]
 	if charset == "" {
@@ -46,8 +50,6 @@ func (c charsetCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, op
 	}
 	return
 }
-
-var CodecPlugin codecs.Codec = charsetCodecs{}
 
 func main() {
 }

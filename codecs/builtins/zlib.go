@@ -12,6 +12,10 @@ import (
 type zlibCodec struct {
 }
 
+func init() {
+	codecs.Register("zlib", zlibCodec{})
+}
+
 func (b zlibCodec) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	level := -1
 	if options["L"] != "" {

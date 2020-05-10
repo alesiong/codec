@@ -118,6 +118,12 @@ cat
     (if with no argument, behave like `id`)
     -c: (close input) do not read from input
     -F file: also read from `file`, optional
+
+drop
+    -B count: drop at most first `count` bytes from input
+
+take
+    -B count: take up to first `count` bytes from input
 ```
 
 # TODO

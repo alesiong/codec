@@ -37,5 +37,5 @@ jobs:
     - name: Upload Build
       uses: actions/upload-artifact@master
       with:
-        name: codecs-${{matrix.os}}
-        path: codecs
+        name: codec-${{matrix.os}}
+        path: codec

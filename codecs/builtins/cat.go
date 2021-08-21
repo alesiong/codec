@@ -18,7 +18,7 @@ func init() {
 func (c catCodecs) RunCodec(input io.Reader, globalMode codecs.CodecMode, options map[string]string, output io.Writer) (err error) {
 	inputFile := options["F"]
 	if inputFile == "" {
-		return errors.New("cat: missing required option output file (-F)")
+		return errors.New("cat: missing required option input file (-F)")
 	}
 
 	if options["c"] == "" {

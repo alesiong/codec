@@ -93,7 +93,7 @@ tee
 
 redirect
     = tee -c -O `file`
-    -O file: redirect output to `file` 
+    -O file: redirect output to `file`
 
 sink
     (= tee -c or redirect -O /dev/null on unix-like systems)
@@ -130,4 +130,5 @@ take
 1. refactor code
 2. load codecs as go plugins
 3. usage
-4. codec aliases
+4. codec aliases/scripts (implement it as super-meta codec)
+5. if codecs
